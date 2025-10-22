@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoTask AI Browser - Direct Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        
+        .input-section {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        #commandInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px 0 0 50px;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            outline: none;
+        }
+        
+        #commandInput::placeholder {
+            color: #aaa;
+        }
+        
+        #executeBtn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 0 50px 50px 0;
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #executeBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(218, 27, 96, 0.4);
+        }
+        
+        .voice-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        #voiceBtn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        #voiceBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        }
+        
+        #voiceBtn.listening {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .voice-status {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 24px;
+        }
+        
+        .examples {
+            margin-bottom: 30px;
+        }
+        
+        .examples h2 {
+            margin-bottom: 15px;
+            color: #ff8a00;
+        }
+        
+        .example-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .example-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .example-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .example-item i {
+            font-size: 1.5rem;
+            color: #ff8a00;
+        }
+        
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .status.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .status h3 {
+            margin-bottom: 10px;
+            color: #ff8a00;
+        }
+        
+        .status p {
+            line-height: 1.6;
+        }
+        
+        .task-progress {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+        
+        .output {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            min-height: 200px;
+            display: none;
+        }
+        
+        .output.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .output h3 {
+            margin-bottom: 15px;
+            color: #ff8a00;
+        }
+        
+        .task-list {
+            list-style-type: none;
+        }
+        
+        .task-list li {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .task-list li.completed {
+            color: #4CAF50;
+        }
+        
+        .task-list li:before {
+            content: "✓";
+            margin-right: 10px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .task-list li.pending:before {
+            content: "⏳";
+            color: #ff8a00;
+        }
+        
+        .task-list li.error:before {
+            content: "⚠";
+            color: #f44336;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .browser-window {
+            margin-top: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        
+        .browser-window.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .browser-header {
+            background: #333;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .browser-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .control {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .close { background: #ff5f57; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #28ca42; }
+        
+        .browser-address {
+            flex: 1;
+            margin: 0 15px;
+            padding: 5px 15px;
+            background: #555;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #ccc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .browser-content {
+            height: 500px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        
+        .browser-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .website-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .website-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .website-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .website-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .input-section {
+                flex-direction: column;
+            }
+            
+            #commandInput {
+                border-radius: 50px;
+                margin-bottom: 10px;
+            }
+            
+            #executeBtn {
+                border-radius: 50px;
+            }
+            
+            .website-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AutoTask AI Browser - Direct Access</h1>
+            <p class="subtitle">Direct website access - No Google searches, just direct navigation</p>
+        </header>
+        
+        <div class="input-section">
+            <input type="text" id="commandInput" placeholder="Try: 'open chatgpt' or 'open youtube search music'">
+            <button id="executeBtn">Execute</button>
+        </div>
+        
+        <div class="voice-section">
+            <button id="voiceBtn">
+                <i class="fas fa-microphone"></i> Start Voice Command
+            </button>
+        </div>
+        
+        <div class="voice-status" id="voiceStatus"></div>
+        
+        <div class="examples">
+            <h2>Quick Access Websites:</h2>
+            <div class="website-grid">
+                <div class="website-item" data-command="open chatgpt">
+                    <i class="fas fa-robot"></i>
+                    <div>ChatGPT</div>
+                </div>
+                <div class="website-item" data-command="open youtube">
+                    <i class="fab fa-youtube"></i>
+                    <div>YouTube</div>
+                </div>
+                <div class="website-item" data-command="open whatsapp">
+                    <i class="fab fa-whatsapp"></i>
+                    <div>WhatsApp</div>
+                </div>
+                <div class="website-item" data-command="open gmail">
+                    <i class="fas fa-envelope"></i>
+                    <div>Gmail</div>
+                </div>
+                <div class="website-item" data-command="open facebook">
+                    <i class="fab fa-facebook"></i>
+                    <div>Facebook</div>
+                </div>
+                <div class="website-item" data-command="open instagram">
+                    <i class="fab fa-instagram"></i>
+                    <div>Instagram</div>
+                </div>
+                <div class="website-item" data-command="open twitter">
+                    <i class="fab fa-twitter"></i>
+                    <div>Twitter</div>
+                </div>
+                <div class="website-item" data-command="open github">
+                    <i class="fab fa-github"></i>
+                    <div>GitHub</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="examples">
+            <h2>More Examples:</h2>
+            <div class="example-list">
+                <div class="example-item" data-command="open youtube search for telugu songs">
+                    <i class="fab fa-youtube"></i>
+                    <div>YouTube + Search</div>
+                </div>
+                <div class="example-item" data-command="open flipkart search for iphone">
+                    <i class="fas fa-shopping-cart"></i>
+                    <div>Flipkart + Search</div>
+                </div>
+                <div class="example-item" data-command="open amazon search for laptop">
+                    <i class="fab fa-amazon"></i>
+                    <div>Amazon + Search</div>
+                </div>
+                <div class="example-item" data-command="open netflix">
+                    <i class="fab fa-netflix"></i>
+                    <div>Netflix</div>
+                </div>
+                <div class="example-item" data-command="open spotify">
+                    <i class="fab fa-spotify"></i>
+                    <div>Spotify</div>
+                </div>
+                <div class="example-item" data-command="open linkedin">
+                    <i class="fab fa-linkedin"></i>
+                    <div>LinkedIn</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status" id="statusSection">
+            <h3>Task Status</h3>
+            <p id="statusText">Processing your request...</p>
+            <div class="task-progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+        
+        <div class="output" id="outputSection">
+            <h3>Task Execution Details</h3>
+            <ul class="task-list" id="taskList">
+                <!-- Task items will be added here dynamically -->
+            </ul>
+        </div>
+        
+        <div class="browser-window" id="browserWindow">
+            <div class="browser-header">
+                <div class="browser-controls">
+                    <div class="control close"></div>
+                    <div class="control minimize"></div>
+                    <div class="control maximize"></div>
+                </div>
+                <div class="browser-address" id="browserAddress">https://autotask-ai-browser.com</div>
+            </div>
+            <div class="browser-content" id="browserContent">
+                <p>Website will open in a new tab for full functionality</p>
+            </div>
+        </div>
+        
+        <div class="action-buttons" id="actionButtons" style="display: none;">
+            <button class="action-btn" id="openTabBtn">
+                <i class="fas fa-external-link-alt"></i> Open in New Tab
+            </button>
+            <button class="action-btn" id="copyUrlBtn">
+                <i class="fas fa-copy"></i> Copy URL
+            </button>
+        </div>
+        
+        <div class="footer">
+            <p>AutoTask AI Browser &copy; 2023 | Direct website access - No Google searches</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const commandInput = document.getElementById('commandInput');
+            const executeBtn = document.getElementById('executeBtn');
+            const voiceBtn = document.getElementById('voiceBtn');
+            const voiceStatus = document.getElementById('voiceStatus');
+            const exampleItems = document.querySelectorAll('.example-item');
+            const websiteItems = document.querySelectorAll('.website-item');
+            const statusSection = document.getElementById('statusSection');
+            const statusText = document.getElementById('statusText');
+            const progressBar = document.getElementById('progressBar');
+            const outputSection = document.getElementById('outputSection');
+            const taskList = document.getElementById('taskList');
+            const browserWindow = document.getElementById('browserWindow');
+            const browserAddress = document.getElementById('browserAddress');
+            const browserContent = document.getElementById('browserContent');
+            const actionButtons = document.getElementById('actionButtons');
+            const openTabBtn = document.getElementById('openTabBtn');
+            const copyUrlBtn = document.getElementById('copyUrlBtn');
+            
+            let currentUrl = '';
+            let recognition = null;
+            
+            // Website database - direct URLs
+            const websiteDatabase = {
+                // Social Media
+                'facebook': 'https://www.facebook.com',
+                'instagram': 'https://www.instagram.com',
+                'twitter': 'https://www.twitter.com',
+                'linkedin': 'https://www.linkedin.com',
+                'whatsapp': 'https://web.whatsapp.com',
+                'telegram': 'https://web.telegram.org',
+                'discord': 'https://discord.com',
+                'reddit': 'https://www.reddit.com',
+                'pinterest': 'https://www.pinterest.com',
+                
+                // Communication
+                'gmail': 'https://mail.google.com',
+                'outlook': 'https://outlook.live.com',
+                'yahoo': 'https://mail.yahoo.com',
+                'skype': 'https://web.skype.com',
+                
+                // Entertainment
+                'youtube': 'https://www.youtube.com',
+                'netflix': 'https://www.netflix.com',
+                'spotify': 'https://open.spotify.com',
+                'prime': 'https://www.primevideo.com',
+                'hotstar': 'https://www.hotstar.com',
+                'twitch': 'https://www.twitch.tv',
+                
+                // Shopping
+                'amazon': 'https://www.amazon.com',
+                'flipkart': 'https://www.flipkart.com',
+                'ebay': 'https://www.ebay.com',
+                'aliexpress': 'https://www.aliexpress.com',
+                
+                // Productivity
+                'chatgpt': 'https://chat.openai.com',
+                'bard': 'https://bard.google.com',
+                'github': 'https://www.github.com',
+                'gitlab': 'https://www.gitlab.com',
+                'notion': 'https://www.notion.so',
+                'trello': 'https://www.trello.com',
+                
+                // News
+                'bbc': 'https://www.bbc.com',
+                'cnn': 'https://www.cnn.com',
+                'reuters': 'https://www.reuters.com',
+                
+                // Search Engines
+                'google': 'https://www.google.com',
+                'bing': 'https://www.bing.com',
+                'duckduckgo': 'https://duckduckgo.com',
+                
+                // Cloud Storage
+                'drive': 'https://drive.google.com',
+                'dropbox': 'https://www.dropbox.com',
+                'onedrive': 'https://onedrive.live.com'
+            };
+            
+            // Check if browser supports speech recognition
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                
+                recognition.onstart = function() {
+                    voiceBtn.classList.add('listening');
+                    voiceStatus.textContent = "Listening... Speak now";
+                };
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    commandInput.value = transcript;
+                    voiceStatus.textContent = `Heard: "${transcript}"`;
+                    executeCommand(transcript);
+                };
+                
+                recognition.onerror = function(event) {
+                    voiceStatus.textContent = "Error occurred in recognition: " + event.error;
+                    voiceBtn.classList.remove('listening');
+                };
+                
+                recognition.onend = function() {
+                    voiceBtn.classList.remove('listening');
+                    setTimeout(() => {
+                        voiceStatus.textContent = "";
+                    }, 3000);
+                };
+            } else {
+                voiceBtn.disabled = true;
+                voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i> Voice Not Supported';
+                voiceStatus.textContent = "Speech recognition not supported in this browser";
+            }
+            
+            // Voice button click handler
+            voiceBtn.addEventListener('click', function() {
+                if (recognition) {
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        voiceStatus.textContent = "Error starting voice recognition: " + error.message;
+                    }
+                }
+            });
+            
+            // Website items click handler
+            websiteItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    commandInput.value = command;
+                    executeCommand(command);
+                });
+            });
+            
+            // Example items click handler
+            exampleItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    commandInput.value = command;
+                    executeCommand(command);
+                });
+            });
+            
+            // Execute button click handler
+            executeBtn.addEventListener('click', function() {
+                const command = commandInput.value.trim();
+                if (command) {
+                    executeCommand(command);
+                } else {
+                    alert('Please enter a command');
+                }
+            });
+            
+            // Enter key handler
+            commandInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    executeBtn.click();
+                }
+            });
+            
+            // Action buttons
+            openTabBtn.addEventListener('click', function() {
+                if (currentUrl) {
+                    window.open(currentUrl, '_blank');
+                }
+            });
+            
+            copyUrlBtn.addEventListener('click', function() {
+                if (currentUrl) {
+                    navigator.clipboard.writeText(currentUrl).then(() => {
+                        alert('URL copied to clipboard!');
+                    }).catch(() => {
+                        // Fallback for older browsers
+                        const textArea = document.createElement('textarea');
+                        textArea.value = currentUrl;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        alert('URL copied to clipboard!');
+                    });
+                }
+            });
+            
+            // Main function to process commands
+            function executeCommand(command) {
+                // Reset UI
+                resetUI();
+                
+                // Show status
+                statusSection.classList.add('active');
+                outputSection.classList.add('active');
+                
+                // Update status
+                statusText.textContent = `Processing: "${command}"`;
+                
+                // Process the command directly
+                processCommandDirect(command);
+            }
+            
+            function processCommandDirect(command) {
+                addTask('Analyzing command...', 'pending');
+                
+                try {
+                    // Direct command processing without AI
+                    const response = processCommandManually(command);
+                    
+                    updateTask(0, 'Command analyzed successfully', 'completed');
+                    addTask(`Opening: ${response.action}`, 'pending');
+                    progressBar.style.width = '50%';
+                    
+                    setTimeout(() => {
+                        updateTask(1, `${response.action}`, 'completed');
+                        progressBar.style.width = '100%';
+                        
+                        // Perform the actual action
+                        performAction(response);
+                        
+                        setTimeout(() => {
+                            statusText.textContent = 'Task completed successfully!';
+                        }, 500);
+                    }, 1000);
+                    
+                } catch (error) {
+                    updateTask(0, 'Error processing command', 'error');
+                    statusText.textContent = 'Error: ' + error.message;
+                }
+            }
+            
+            function processCommandManually(command) {
+                const lowerCommand = command.toLowerCase();
+                let action = '';
+                let url = '';
+                let query = '';
+                
+                // Extract website name
+                let websiteName = '';
+                for (const site in websiteDatabase) {
+                    if (lowerCommand.includes(site)) {
+                        websiteName = site;
+                        break;
+                    }
+                }
+                
+                // If we found a website
+                if (websiteName && websiteDatabase[websiteName]) {
+                    url = websiteDatabase[websiteName];
+                    action = `Opening ${websiteName.charAt(0).toUpperCase() + websiteName.slice(1)}`;
+                    
+                    // Check if there's a search query
+                    if (lowerCommand.includes('search')) {
+                        query = extractSearchQuery(command, websiteName);
+                        if (query) {
+                            // Add search functionality for supported sites
+                            if (websiteName === 'youtube') {
+                                url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+                                action = `Searching YouTube for "${query}"`;
+                            } else if (websiteName === 'google') {
+                                url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                                action = `Searching Google for "${query}"`;
+                            } else if (websiteName === 'amazon') {
+                                url = `https://www.amazon.com/s?k=${encodeURIComponent(query)}`;
+                                action = `Searching Amazon for "${query}"`;
+                            } else if (websiteName === 'flipkart') {
+                                url = `https://www.flipkart.com/search?q=${encodeURIComponent(query)}`;
+                                action = `Searching Flipkart for "${query}"`;
+                            }
+                            // Add more searchable sites as needed
+                        }
+                    }
+                } else {
+                    // If no specific website found, try to extract any website name
+                    const words = lowerCommand.split(' ');
+                    for (let i = 0; i < words.length; i++) {
+                        if (words[i] === 'open' && i + 1 < words.length) {
+                            const potentialSite = words[i + 1];
+                            if (websiteDatabase[potentialSite]) {
+                                websiteName = potentialSite;
+                                url = websiteDatabase[potentialSite];
+                                action = `Opening ${potentialSite.charAt(0).toUpperCase() + potentialSite.slice(1)}`;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // If still no website found, default to Google
+                    if (!websiteName) {
+                        websiteName = 'google';
+                        url = `https://www.google.com/search?q=${encodeURIComponent(command)}`;
+                        action = `Searching Google for "${command}"`;
+                    }
+                }
+                
+                return {
+                    action: action,
+                    url: url,
+                    query: query,
+                    website: websiteName
+                };
+            }
+            
+            function extractSearchQuery(command, websiteName) {
+                const lowerCommand = command.toLowerCase();
+                const websiteIndex = lowerCommand.indexOf(websiteName);
+                
+                // Try to extract text after "search for" or "search"
+                let searchMatch = command.match(/search for (.+?)(?= and|$)/i) || 
+                                 command.match(/search (.+?)(?= and|$)/i);
+                
+                if (searchMatch) {
+                    return searchMatch[1];
+                }
+                
+                // If no clear search pattern, extract text after the website name
+                if (websiteIndex !== -1) {
+                    let afterWebsite = command.substring(websiteIndex + websiteName.length).trim();
+                    // Remove common connecting words
+                    afterWebsite = afterWebsite.replace(/^(and|then|for|search|find)\s+/i, '');
+                    if (afterWebsite) return afterWebsite;
+                }
+                
+                return '';
+            }
+            
+            function performAction(response) {
+                currentUrl = response.url;
+                
+                // Update browser UI
+                browserWindow.classList.add('active');
+                browserAddress.textContent = response.url;
+                browserContent.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: #333; margin-bottom: 15px;">${response.action}</h3>
+                        <p style="color: #666; margin-bottom: 20px;">The website will open in a new tab for full functionality</p>
+                        <button onclick="window.open('${response.url}', '_blank')" 
+                                style="padding: 10px 20px; background: #ff8a00; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Open ${response.website.charAt(0).toUpperCase() + response.website.slice(1)} Now
+                        </button>
+                    </div>
+                `;
+                
+                // Show action buttons
+                actionButtons.style.display = 'flex';
+                
+                // Automatically open in new tab after a short delay
+                setTimeout(() => {
+                    window.open(response.url, '_blank');
+                    addTask(`Opened ${response.website} in new tab`, 'completed');
+                }, 1000);
+            }
+            
+            function addTask(text, status) {
+                const li = document.createElement('li');
+                li.textContent = text;
+                li.classList.add(status);
+                taskList.appendChild(li);
+            }
+            
+            function updateTask(index, text, status) {
+                const tasks = taskList.querySelectorAll('li');
+                if (tasks[index]) {
+                    tasks[index].textContent = text;
+                    tasks[index].className = status;
+                }
+            }
+            
+            function resetUI() {
+                progressBar.style.width = '0%';
+                statusSection.classList.remove('active');
+                outputSection.classList.remove('active');
+                browserWindow.classList.remove('active');
+                actionButtons.style.display = 'none';
+                taskList.innerHTML = '';
+                currentUrl = '';
+            }
+        });
+    </script>
+</body>
+</html>
